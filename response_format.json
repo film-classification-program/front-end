@@ -1,0 +1,36 @@
+{
+    "films": [
+        {
+            "name_chinese": "点球成金",
+            "name_english": "Monkeyball",
+            "year": 2011,
+            "link": "https://movie.douban.com/subject/3023164/",
+            "type": "剧情 / 传记 / 运动",
+            "duration_minutes": 133,
+            "rating": 8.3,
+            "alias": "魔球(港/台) / 钱与球 / 金球",
+            "language": "英语",
+            "imdb": "tt1210166",
+            "starring": "布拉德·皮特 / 乔纳·希尔 / 菲利普·塞默·霍夫曼 / 罗宾·怀特 / 克里斯·帕拉特",
+            "director": "贝尼特·米勒"
+        },
+        {
+            "name_chinese": "点球成金",
+            "name_english": "Monkeyball",
+            "year": 2011,
+            "link": "https://movie.douban.com/subject/3023164/",
+            "type": "剧情 / 传记 / 运动",
+            "duration_minutes": 133,
+            "rating": 8.3,
+            "alias": "魔球(港/台) / 钱与球 / 金球",
+            "language": "英语",
+            "imdb": "tt1210166",
+            "starring": "布拉德·皮特 / 乔纳·希尔 / 菲利普·塞默·霍夫曼 / 罗宾·怀特 / 克里斯·帕拉特",
+            "director": "贝尼特·米勒"
+        }
+    ],
+    "success": true,
+    "error_code": "",  
+    "error_message": "",
+    "timestamp": 1745206684
+}

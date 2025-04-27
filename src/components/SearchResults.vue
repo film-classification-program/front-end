@@ -1,0 +1,360 @@
+<template>
+  <div class="search-results-page">
+    <div class="search-header">
+      <div class="logo-and-search">
+        <router-link to="/" class="logo-link">
+          <FilmLogo class="small-logo" />
+        </router-link>
+        <div class="inline-search">
+          <SearchBar 
+            @search="performSearch" 
+            :placeholder="searchPlaceholder"
+            :initial-query="query"
+          />
+        </div>
+      </div>
+      <div class="search-divider"></div>
+    </div>
+    
+    <div class="results-container">
+      <div class="results-count" v-if="searchResults.length > 0">
+        找到 {{ searchResults.length }} 条关于 "{{ query }}" 的搜索结果
+      </div>
+      <div class="no-results" v-else-if="searchResultsLoaded">
+        未找到关于 "{{ query }}" 的相关电影
+      </div>
+      <div class="loading" v-else>
+        正在搜索中...
+      </div>
+      
+      <div class="results-list">
+        <div class="result-item" v-for="(result, index) in searchResults" :key="index">
+          <div class="movie-header">
+            <a :href="result.url" target="_blank" class="movie-title">{{ result.title }}</a>
+            <div class="movie-rating">
+              <span class="rating-label">评分:</span>
+              <span class="rating-value">{{ result.rating }}</span>
+            </div>
+          </div>
+          
+          <div class="movie-info-grid">
+            <div class="info-group">
+              <div class="info-row">
+                <span class="info-icon">🏷️</span>
+                <span class="info-label">别名:</span>
+                <span class="info-value truncate" :title="result.alias">{{ result.alias }}</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="info-icon">👥</span>
+                <span class="info-label">主演:</span>
+                <span class="info-value truncate" :title="result.actors">{{ result.actors }}</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="info-icon">🎬</span>
+                <span class="info-label">导演:</span>
+                <span class="info-value">{{ result.director }}</span>
+              </div>
+            </div>
+            
+            <div class="info-group">
+              <div class="info-row">
+                <span class="info-icon">🎭</span>
+                <span class="info-label">类型:</span>
+                <span class="info-value">{{ result.types }}</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="info-icon">⏱️</span>
+                <span class="info-label">片长:</span>
+                <span class="info-value">{{ result.duration }}</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="info-icon">🌐</span>
+                <span class="info-label">语言:</span>
+                <span class="info-value">{{ result.language }}</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="info-icon">🎞️</span>
+                <span class="info-label">IMDb:</span>
+                <span class="info-value">{{ result.imdb }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import FilmLogo from './FilmLogo.vue'
+import SearchBar from './SearchBar.vue'
+import { searchFilms } from '../services/filmApi'
+
+export default {
+  name: 'SearchResults',
+  components: {
+    FilmLogo,
+    SearchBar
+  },
+  props: {
+    query: {
+      type: String,
+      default: ''
+    }
+  },
+  data() {
+    return {
+      searchPlaceholder: '你想找什么样的电影？',
+      searchResults: [],
+      searchResultsLoaded: false
+    }
+  },
+  created() {
+    // 在组件创建时加载数据
+    this.fetchResults()
+  },
+  watch: {
+    // 监听查询参数变化，重新获取结果
+    query(newValue) {
+      if (newValue) {
+        this.fetchResults()
+      }
+    }
+  },
+  methods: {
+    performSearch(query) {
+      if (query.trim() !== '') {
+        this.$router.replace({
+          path: '/search',
+          query: { desc: query }
+        })
+      }
+    },
+    async fetchResults() {
+      this.searchResultsLoaded = false
+      try {
+        // 使用API服务获取结果
+        this.searchResults = await searchFilms(this.query)
+      } catch (error) {
+        console.error('搜索失败:', error)
+        this.searchResults = []
+      } finally {
+        this.searchResultsLoaded = true
+      }
+    }
+  }
+}
+</script>
+
+<style scoped>
+.search-results-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.search-header {
+  padding: 20px 40px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.logo-and-search {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.small-logo :deep(.film-logo-text) {
+  font-size: 28px;
+}
+
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.inline-search {
+  flex: 1;
+}
+
+.inline-search :deep(.search-container) {
+  flex-direction: row;
+  gap: 20px;
+  align-items: center;
+}
+
+.inline-search :deep(.search-bar) {
+  margin-bottom: 0;
+}
+
+.search-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.results-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  width: 100%;
+}
+
+.results-count {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.no-results, .loading {
+  font-size: 16px;
+  color: #555;
+  text-align: center;
+  padding: 40px 0;
+}
+
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.result-item {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  background-color: #fff;
+  transition: box-shadow 0.2s;
+}
+
+.result-item:hover {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.movie-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 8px;
+}
+
+.movie-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #1a73e8;
+  text-decoration: none;
+}
+
+.movie-title:hover {
+  text-decoration: underline;
+}
+
+.movie-rating {
+  display: flex;
+  align-items: center;
+  background-color: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.rating-label {
+  color: #707070;
+  margin-right: 4px;
+}
+
+.rating-value {
+  color: #ff9800;
+  font-weight: 500;
+}
+
+.movie-info-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.info-group {
+  flex: 1;
+  min-width: 300px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.info-icon {
+  width: 20px;
+  margin-right: 4px;
+  text-align: center;
+}
+
+.info-label {
+  color: #707070;
+  margin-right: 4px;
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.info-value {
+  color: #333;
+  flex: 1;
+}
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  cursor: default;
+}
+
+@media (max-width: 768px) {
+  .logo-and-search {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .movie-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .movie-info-grid {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .info-group {
+    min-width: unset;
+  }
+  
+  .search-header {
+    padding: 15px 20px;
+  }
+  
+  .inline-search :deep(.search-container) {
+    flex-direction: column;
+  }
+  
+  .inline-search :deep(.search-bar) {
+    margin-bottom: 15px;
+  }
+}
+</style> 
