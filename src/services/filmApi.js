@@ -6,7 +6,7 @@ const mockFilms = [
   {
     id: 1,
     title: '点球成金 Monkeyball (2011)',
-    url: 'https://movie.douban.com/subject/3023164/',
+    link: 'https://movie.douban.com/subject/3023164/',
     types: '喜剧 / 传记 / 运动',
     duration: '133分钟',
     rating: '8.3',
@@ -19,7 +19,7 @@ const mockFilms = [
   {
     id: 2,
     title: '机器人总动员 WALL·E (2008)',
-    url: 'https://movie.douban.com/subject/2131459/',
+    link: 'https://movie.douban.com/subject/2131459/',
     types: '科幻 / 动画 / 冒险',
     duration: '98分钟',
     rating: '9.1',
@@ -32,7 +32,7 @@ const mockFilms = [
   {
     id: 3,
     title: '千与千寻 千と千尋の神隠し (2001)',
-    url: 'https://movie.douban.com/subject/1291561/',
+    link: 'https://movie.douban.com/subject/1291561/',
     types: '动画 / 奇幻 / 冒险',
     duration: '125分钟',
     rating: '9.4',
@@ -74,31 +74,27 @@ export const searchFilms = async (query) => {
     }
     
     // 将API返回的数据转换为应用所需的格式
-    return data.films.map((film, index) => ({
-      id: index + 1,
-      title: `${film.name_chinese} ${film.name_english} (${film.year})`,
-      url: film.link,
-      types: film.type,
-      duration: `${film.duration_minutes}分钟`,
-      rating: film.rating.toString(),
-      alias: film.alias,
-      language: film.language,
-      imdb: film.imdb,
-      actors: film.starring,
-      director: film.director
-    }));
+    return data.films.map((film, index) => {
+      // 确保使用完整的豆瓣链接
+      const doubanLink = film.link.startsWith('http') ? film.link : `https://movie.douban.com/subject/${film.link}/`;
+      
+      return {
+        id: index + 1,
+        title: `${film.name_chinese} ${film.name_english} (${film.year})`.trim(),
+        link: doubanLink,  // 使用处理后的豆瓣链接
+        types: film.type,
+        duration: `${film.duration_minutes}分钟`,
+        rating: film.rating ? film.rating.toString() : '暂无评分',
+        alias: film.alias || '暂无别名',
+        language: film.language || '暂无语言信息',
+        imdb: film.imdb || '暂无IMDb编号',
+        actors: film.starring || '暂无主演信息',
+        director: film.director || '暂无导演信息'
+      };
+    });
   } catch (error) {
     console.error('API调用失败:', error);
-    
-    // API调用失败时使用模拟数据（开发阶段使用）
-    console.warn('使用模拟数据作为备用');
-    const results = [];
-    for (let i = 0; i < 9; i++) {
-      const randomIndex = Math.floor(Math.random() * mockFilms.length);
-      const film = { ...mockFilms[randomIndex], id: i + 1 };
-      results.push(film);
-    }
-    return results;
+    return [];
   }
 };
 

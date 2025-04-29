@@ -17,75 +17,84 @@
     </div>
     
     <div class="results-container">
-      <div class="results-count" v-if="searchResults.length > 0">
-        找到 {{ searchResults.length }} 条关于 "{{ query }}" 的搜索结果
-      </div>
-      <div class="no-results" v-else-if="searchResultsLoaded">
-        未找到关于 "{{ query }}" 的相关电影
-      </div>
-      <div class="loading" v-else>
-        正在搜索中...
+      <!-- 搜索状态显示 -->
+      <div v-if="isLoading" class="loading">
+        <div class="loading-spinner"></div>
+        <span>正在搜索中...</span>
       </div>
       
-      <div class="results-list">
-        <div class="result-item" v-for="(result, index) in searchResults" :key="index">
-          <div class="movie-header">
-            <a :href="result.url" target="_blank" class="movie-title">{{ result.title }}</a>
-            <div class="movie-rating">
-              <span class="rating-label">评分:</span>
-              <span class="rating-value">{{ result.rating }}</span>
-            </div>
-          </div>
-          
-          <div class="movie-info-grid">
-            <div class="info-group">
-              <div class="info-row">
-                <span class="info-icon">🏷️</span>
-                <span class="info-label">别名:</span>
-                <span class="info-value truncate" :title="result.alias">{{ result.alias }}</span>
-              </div>
-              
-              <div class="info-row">
-                <span class="info-icon">👥</span>
-                <span class="info-label">主演:</span>
-                <span class="info-value truncate" :title="result.actors">{{ result.actors }}</span>
-              </div>
-              
-              <div class="info-row">
-                <span class="info-icon">🎬</span>
-                <span class="info-label">导演:</span>
-                <span class="info-value">{{ result.director }}</span>
+      <div v-else-if="error" class="error-message">
+        {{ error }}
+      </div>
+      
+      <template v-else>
+        <div class="results-count" v-if="searchResults.length > 0">
+          找到 {{ searchResults.length }} 条关于 "{{ query }}" 的搜索结果
+        </div>
+        <div class="no-results" v-else-if="searchResultsLoaded">
+          未找到关于 "{{ query }}" 的相关电影
+        </div>
+        
+        <div class="results-list">
+          <div class="result-item" v-for="(result, index) in searchResults" :key="index">
+            <div class="movie-header">
+              <a :href="result.link" target="_blank" rel="noopener noreferrer" class="movie-title">{{ result.title }}</a>
+              <div class="movie-rating" v-if="result.rating !== '暂无评分'">
+                <span class="rating-label">评分:</span>
+                <span class="rating-value">{{ result.rating }}</span>
               </div>
             </div>
             
-            <div class="info-group">
-              <div class="info-row">
-                <span class="info-icon">🎭</span>
-                <span class="info-label">类型:</span>
-                <span class="info-value">{{ result.types }}</span>
+            <div class="movie-info-grid">
+              <div class="info-group">
+                <div class="info-row" v-if="result.alias !== '暂无别名'">
+                  <span class="info-icon">🏷️</span>
+                  <span class="info-label">别名:</span>
+                  <span class="info-value truncate" :title="result.alias">{{ result.alias }}</span>
+                </div>
+                
+                <div class="info-row" v-if="result.actors !== '暂无主演信息'">
+                  <span class="info-icon">👥</span>
+                  <span class="info-label">主演:</span>
+                  <span class="info-value truncate" :title="result.actors">{{ result.actors }}</span>
+                </div>
+                
+                <div class="info-row" v-if="result.director !== '暂无导演信息'">
+                  <span class="info-icon">🎬</span>
+                  <span class="info-label">导演:</span>
+                  <span class="info-value">{{ result.director }}</span>
+                </div>
               </div>
               
-              <div class="info-row">
-                <span class="info-icon">⏱️</span>
-                <span class="info-label">片长:</span>
-                <span class="info-value">{{ result.duration }}</span>
-              </div>
-              
-              <div class="info-row">
-                <span class="info-icon">🌐</span>
-                <span class="info-label">语言:</span>
-                <span class="info-value">{{ result.language }}</span>
-              </div>
-              
-              <div class="info-row">
-                <span class="info-icon">🎞️</span>
-                <span class="info-label">IMDb:</span>
-                <span class="info-value">{{ result.imdb }}</span>
+              <div class="info-group">
+                <div class="info-row" v-if="result.types">
+                  <span class="info-icon">🎭</span>
+                  <span class="info-label">类型:</span>
+                  <span class="info-value">{{ result.types }}</span>
+                </div>
+                
+                <div class="info-row" v-if="result.duration">
+                  <span class="info-icon">⏱️</span>
+                  <span class="info-label">片长:</span>
+                  <span class="info-value">{{ result.duration }}</span>
+                </div>
+                
+                <div class="info-row" v-if="result.language !== '暂无语言信息'">
+                  <span class="info-icon">🌐</span>
+                  <span class="info-label">语言:</span>
+                  <span class="info-value">{{ result.language }}</span>
+                </div>
+                
+                <div class="info-row" v-if="result.imdb !== '暂无IMDb编号'">
+                  <span class="info-icon">🎞️</span>
+                  <span class="info-label">IMDb:</span>
+                  <span class="info-value">{{ result.imdb }}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>
@@ -111,15 +120,17 @@ export default {
     return {
       searchPlaceholder: '你想找什么样的电影？',
       searchResults: [],
-      searchResultsLoaded: false
+      searchResultsLoaded: false,
+      isLoading: false,
+      error: null
     }
   },
   created() {
-    // 在组件创建时加载数据
-    this.fetchResults()
+    if (this.query) {
+      this.fetchResults()
+    }
   },
   watch: {
-    // 监听查询参数变化，重新获取结果
     query(newValue) {
       if (newValue) {
         this.fetchResults()
@@ -136,15 +147,19 @@ export default {
       }
     },
     async fetchResults() {
+      this.isLoading = true
+      this.error = null
       this.searchResultsLoaded = false
+      
       try {
-        // 使用API服务获取结果
         this.searchResults = await searchFilms(this.query)
+        this.searchResultsLoaded = true
       } catch (error) {
         console.error('搜索失败:', error)
+        this.error = '搜索请求失败，请稍后重试'
         this.searchResults = []
       } finally {
-        this.searchResultsLoaded = true
+        this.isLoading = false
       }
     }
   }
@@ -255,10 +270,16 @@ export default {
   font-weight: 500;
   color: #1a73e8;
   text-decoration: none;
+  display: inline-block;
+  max-width: 80%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .movie-title:hover {
   text-decoration: underline;
+  color: #1557b0;
 }
 
 .movie-rating {
@@ -356,5 +377,35 @@ export default {
   .inline-search :deep(.search-bar) {
     margin-bottom: 15px;
   }
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 0;
+  color: #555;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #1a73e8;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+.error-message {
+  text-align: center;
+  color: #d32f2f;
+  padding: 40px 0;
+  font-size: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style> 
